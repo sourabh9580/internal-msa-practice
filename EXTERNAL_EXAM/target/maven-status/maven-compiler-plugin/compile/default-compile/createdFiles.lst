@@ -1,0 +1,14 @@
+Entity\Garments_.class
+com\external\external_exam\config\CrossOriginResourceSharingFilter.class
+Entity\Orders.class
+Entity\Orders_.class
+com\external\external_exam\service\garmentsbean.class
+Entity\Customer.class
+com\external\external_exam\config\Producers.class
+Entity\Customer_.class
+com\external\external_exam\config\BootStrap.class
+com\external\external_exam\service\ExampleService.class
+Entity\Garments.class
+Entity\Category.class
+com\external\external_exam\service\HealthCheckService.class
+Entity\Category_.class

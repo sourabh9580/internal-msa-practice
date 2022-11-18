@@ -1,0 +1,13 @@
+com\external\external_exam_client\service\ExampleService.class
+Entity\Orders.class
+Entity\Customer.class
+com\external\external_exam_client\service\CategoryServlet.class
+com\external\external_exam_client\service\RemoteServlet.class
+com\external\external_exam_client\service\RemoteClient.class
+Entity\Garments.class
+Entity\Category.class
+com\external\external_exam_client\service\HealthCheckService.class
+com\external\external_exam_client\config\BootStrap.class
+com\external\external_exam_client\service\ResultServlet.class
+com\external\external_exam_client\config\CrossOriginResourceSharingFilter.class
+com\external\external_exam_client\config\Producers.class

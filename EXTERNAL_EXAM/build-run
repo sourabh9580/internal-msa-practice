@@ -1,0 +1,3 @@
+#!/bin/sh
+mvn clean package && docker build -t vivekmaniyar/EXTERNAL_EXAM .
+docker rm -f EXTERNAL_EXAM 2>/dev/null || true && docker run -it --name EXTERNAL_EXAM -p 8080:8080 -p 4848:4848 -p 8181:8181 --name EXTERNAL_EXAM vivekmaniyar/EXTERNAL_EXAM
