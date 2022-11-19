@@ -1,0 +1,281 @@
+=============================SERVER======================================
+>create new maven project-->select arctype-->jakarta ee8
+>configure pom.xml-->(11.8 to 1.8)
+>Optional(3.1 to 3.2)
+>create entity (package=entity)
+>Add @JsonbTransient in collection function
+>Create one java class file name=datamodel(package=model)
+=========================================================================
+> in class file
+public class DataModel {
+    @PersistenceContext(unitName = "com.mycompany_CabServer_war_1.0-SNAPSHOTPU")
+    
+    EntityManager em;
+    
+    public Collection<Cab> getcabdata()
+    {
+        return em.createNamedQuery("Cab.findAll").getResultList();
+    }
+    
+    public Collection<Booking> getbookingdata()
+    {
+        return em.createNamedQuery("Booking.findAll").getResultList();
+    }
+    
+    
+}
+=========================================================================
+>Go to the ExampleService.java file
+
+@Path("/example")
+public class ExampleService {
+    
+    @Inject DataModel dm;
+    
+    @GET
+    @Path("getcabdata")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Collection<Cab> getcabdata()
+    {
+        return dm.getcabdata();
+    }
+    
+    @GET
+    @Path("getbookingdata")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("customer")
+    public Collection<Booking> getbookingdata()
+    {
+        return dm.getbookingdata();
+    }
+    
+    @GET
+    public Response get() {
+        return Response.ok("Hello, world!").build();
+    }
+
+}
+
+=============================CLIENT======================================
+>create new maven project-->select arctype-->jakarta ee8
+>configure pom.xml-->(11.8 to 1.8)---->(3.1 to 3.2)
+>copy entity from server project
+>Create Interface name = ApiInterface(package client)
+=========================================================================
+>In Interface File
+@RegisterRestClient(baseUri = "http://localhost:9090/CabServer/rest/example")
+//for payra micro
+//@RegisterRestClient(baseUri = "http://desktop-29ativ7:8081/CabServer/rest/example")
+public interface ApiInterface {
+    @GET
+    @Path("getcabdata")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Collection<Cab> getcabdata();
+    
+    @GET
+    @Path("getbookingdata")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ClientHeaderParam(name="authorization" ,value="Bearer eyJraWQiOiJqd3Qua2V5IiwidHlwIjoiSldUIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJkdWtlIiwidXBuIjoiZHVrZSIsImF1dGhfdGltZSI6MTY2NzkxNTg2NiwiaXNzIjoiYWlyaGFja3MiLCJncm91cHMiOlsiY3VzdG9tZXIiXSwiZXhwIjoxNjY4MDE1ODY2LCJpYXQiOjE2Njc5MTU4NjYsImp0aSI6IjQyIn0.l__MPi-2aQNidOFXbm0-rSGRApIDisYbzanbwxKGwJZ-eJ8wxZJfuYuKgLH1DAnzKUmq3TM2wUdKTDEq0na__pexs5uTiQFvgIam4mEyhiKcijA9pk7QSfOE3MFbXeoOThdvrYbujtUv11N9PWMdH5JNS935nF7x3bXC4aNCdkFJtl1hLIVjHhNBJtKHZpHnm0J9ef8eb6T2wpCU27oUN9_NqIh9d2ZbbA2rmk7j26tYc0aM5Sa3SRLeX3N56J1UpzXiKASOHI5nSFdWDWv5PLZHslwG8zofbcdbrndr8KLj2OLveeqFkSSR7HC-L_o-zIBnKe9Oh7RpXEWbujNRsQ")
+    public Collection<Booking> getbookingdata();
+}
+=========================================================================
+>Create Servlet name = app (package servlet)
+
+>In App Servlet
+@WebServlet(name = "app", urlPatterns = {"/app"})
+public class app extends HttpServlet {
+
+    @Inject @RestClient ApiInterface a;
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        try ( PrintWriter out = response.getWriter()) {
+            /* TODO output your page here. You may use following sample code. */
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet app</title>");            
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<h1>Servlet app at " + request.getContextPath() + "</h1>");
+            
+            Collection<Cab> cab = a.getcabdata();
+           
+            for(Cab c : cab)
+            {
+                
+                if(c.getStatus().equals("free"))
+                {
+                    out.println("<h1> Free </h1>");
+                    
+                    out.println("<table border='1px'>");
+                    out.println("<tr>");
+                    out.println("<td>" + c.getCabid() + "</td>");
+                    out.println("<td>" + c.getRegno() + "</td>");
+                    out.println("<td>" + c.getCity() + "</td>");
+                    out.println("<td>" + c.getState() + "</td>");
+                    out.println("<td>" + c.getDrivername() + "</td>");
+                    out.println("<td>" + c.getStatus() + "</td>");
+                    out.println("</tr>");
+                    out.println("</table>");
+                }
+ 
+                else
+                {
+                    
+                    out.println("<h1> Busy </h1>");
+                    
+                    Collection<Booking> booking = a.getbookingdata();
+                    
+                    out.println("<table border='1px'>");
+                    for(Booking b : booking)
+                    {
+                        out.println("<tr>");
+                        out.println("<td>" + b.getCabid().getCabid() + "</td>");
+                        out.println("<td>" + b.getCabid().getRegno() + "</td>");
+                        out.println("<td>" + b.getCabid().getCity() + "</td>");
+                        out.println("<td>" + b.getCabid().getState() + "</td>");
+                        out.println("<td>" + b.getCabid().getDrivername() + "</td>");
+                        out.println("<td>" + b.getCabid().getStatus() + "</td>");
+                        out.println("<td>" + b.getCustomerid().getCustomername() + "</td>");
+                        out.println("<td>" + b.getCustomerid().getPhoneno() + "</td>");
+                        out.println("</tr>");
+                    }
+                    out.println("</table>");
+                }
+                
+                out.println("</br>");
+                
+            }
+            
+            out.println("<form method='POST' action='application'>");
+                out.println("<select id='city' name='city'>");
+                    for(Cab ca : cab)
+                    {
+                        out.println("<option>"+ ca.getCity() +"</option>");
+                    }
+                out.println("</select>");
+                out.println("<button>Submit</button>");
+            out.println("</form>");
+                
+            out.println("</body>");
+            out.println("</html>");
+        }
+    }
+
+=======================================================
+>Create Another Servlet name application
+
+@WebServlet(name = "application", urlPatterns = {"/application"})
+public class application extends HttpServlet {
+
+    @Inject @RestClient ApiInterface a;
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        try ( PrintWriter out = response.getWriter()) {
+            /* TODO output your page here. You may use following sample code. */
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet application</title>");            
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<h1>Servlet application at " + request.getContextPath() + "</h1>");
+            
+            String city = request.getParameter("city");
+            
+            Collection<Booking> booking = a.getbookingdata();
+            
+            out.println("<table border='1px'>");
+            for(Booking b : booking)
+            {
+                if(b.getCabid().getCity().equals(city))
+                {
+                    out.println("<tr>");
+                    out.println("<td>" + b.getCabid().getCabid() + "</td>");
+                    out.println("<td>" + b.getCabid().getRegno() + "</td>");
+                    out.println("<td>" + b.getCabid().getCity() + "</td>");
+                    out.println("<td>" + b.getCustomerid().getCustomername() + "</td>");
+                    out.println("<td>" + b.getCustomerid().getPhoneno() + "</td>");
+                    out.println("<td>" + b.getStartridetime() + "</td>");
+                    out.println("</tr>"); 
+                }
+                
+            }
+            out.println("</table>");
+            
+            out.println("</body>");
+            out.println("</html>");
+        }
+    }
+=======================================================
+> Run Server
+localhost:8080/msawithdb/rest/example/students(path name)
+
+> Run Client
+http://localhost:8087/ConsumerDB/app
+=======================================================
+JWT
+
+>jwtenizr.jar file project save hoy te folder ma muko
+>java -jar jwtenizr.jar run this command in that folder(Right Click)
+
+>open jwt-token.json file and group ma changes
+{"iss":"airhacks","jti":"42","sub":"msa","upn":"msa","groups":["admin","user"]} )
+
+>execute same command again java -jar jwtenizr.jar
+>now copy microprofile-config file and paste into (server) META-INF/micrprofile-config
+
+>Goto Server Project Sourcse package/bootstrap file add 2 line
+@SuppressWarnings({"EmptyClass", "SuppressionAnnotation"})
+@ApplicationPath("rest")
+//==============================
+@LoginConfig(authMethod = "MP-JWT")
+@DeclareRoles({"customer"})
+public class BootStrap extends javax.ws.rs.core.Application {
+}
+
+>example service ma jai ne @roleallowed
+
+>Client Project ma jai ne Api Interface na @ClientHeaderParam Add
+ @GET
+    @Path("getbookingdata")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ClientHeaderParam(name="authorization" ,value="Bearer eyJraWQiOiJqd3Qua2V5IiwidHlwIjoiSldUIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJkdWtlIiwidXBuIjoiZHVrZSIsImF1dGhfdGltZSI6MTY2NzkxNTg2NiwiaXNzIjoiYWlyaGFja3MiLCJncm91cHMiOlsiY3VzdG9tZXIiXSwiZXhwIjoxNjY4MDE1ODY2LCJpYXQiOjE2Njc5MTU4NjYsImp0aSI6IjQyIn0.l__MPi-2aQNidOFXbm0-rSGRApIDisYbzanbwxKGwJZ-eJ8wxZJfuYuKgLH1DAnzKUmq3TM2wUdKTDEq0na__pexs5uTiQFvgIam4mEyhiKcijA9pk7QSfOE3MFbXeoOThdvrYbujtUv11N9PWMdH5JNS935nF7x3bXC4aNCdkFJtl1hLIVjHhNBJtKHZpHnm0J9ef8eb6T2wpCU27oUN9_NqIh9d2ZbbA2rmk7j26tYc0aM5Sa3SRLeX3N56J1UpzXiKASOHI5nSFdWDWv5PLZHslwG8zofbcdbrndr8KLj2OLveeqFkSSR7HC-L_o-zIBnKe9Oh7RpXEWbujNRsQ")
+    public Collection<Booking> getbookingdata();
+
+> value ma Bearer pachi change karvu je token.jwt mathi malse
+=======================================================
+Payra Micro Run
+
+>put domain.xml, mysql-connector, payaramicro, client.war, server.war in project folder
+>change in domain.xml
+
+>Run server.war with
+java -jar payara-micro-5.2022.2.jar --deploy client.war --port 8081 --addlibs mysql-connector-java-5.1.23-bin.jar --domainconfig domain.xml
+
+>server na terminal ni url client project ma interface ma chnage karvi
+
+>Run client.war with
+java -jar payara-micro-5.2022.2.jar --deploy server.war --port 8082 --addlibs mysql-connector-java-5.1.23-bin.jar --domainconfig domain.xml
+
+>Browser ma Payra na Terminal ni url copy kari ne run karvu
